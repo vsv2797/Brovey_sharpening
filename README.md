@@ -51,6 +51,8 @@ Clone the repository and install the necessary dependencies.
 
 pip install -r requirements.txt
 
+```bash
+
 data/
 ├── Landsat/
 │   ├── LC08_L1TP_..._B8.TIF (Pan)
@@ -59,6 +61,7 @@ data/
 └── sentinel/GRANULE/.../IMG_DATA/R10m/
     ├── T18TWL_..._B02_10m.jp2 (Blue)
     └── ...
+```
 
 ## Results & Validation
 
