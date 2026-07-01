@@ -1,144 +1,83 @@
-## Enhancement of Spatial Resolution of Low-Resolution Multispectral Satellite Imagery Using Pan Sharpening.
+## Spatial Resolution Enhancement of Multispectral Satellite Imagery via Pan-Sharpening
 
-A Python-based geospatial workflow for preprocessing, visualizing, and checking co-registration between remote sensing images over a selected area of interest. This project is focused on building a clean foundation for machine learning and Earth observation workflows using **Landsat 8** and **Sentinel-2** data.
+<img width="1920" height="700" alt="Figure_1" src="https://github.com/user-attachments/assets/d2c8a1ba-09f2-42b1-8317-c1293048f0b1" />
+
 
 ## Overview
 
-This repository contains scripts and notebooks for:
-- loading satellite imagery,
-- clipping data to an AOI,
-- visualizing multispectral images,
-- comparing image alignment,
-- estimating pixel shifts between datasets,
-- preparing data for later machine learning or fusion tasks.
+This repository provides a reproducible, end-to-end Python pipeline for enhancing the spatial resolution of multispectral satellite imagery. By fusing 30-meter Landsat 8 multispectral data with its corresponding 15-meter panchromatic band, this tool generates high-resolution, color-rich outputs vital for detailed spatial analysis and feature extraction.
 
-The current AOI for this project is **Central Park, New York**.
+Moving beyond standard image manipulation, this project integrates a quantitative validation framework. It benchmarks the structural integrity of the sharpened Landsat output against a high-resolution 10-meter Sentinel-2 reference image using edge magnitude correlation.
 
-## Why this project?
+## The Process: Methodology & Mathematical Fusion
 
-Remote sensing and machine learning pipelines are only as good as their preprocessing. Before training a model or doing image fusion, the input rasters must be properly aligned, clipped to the same region, and checked for spatial consistency. This project provides a practical workflow for doing exactly that.
+The core challenge in multi-sensor Earth Observation is resolving spatial disparities without distorting critical spectral signatures. This pipeline addresses this through a structured fusion process:
 
-## Study Area
+### 1. Spatial Coregistration
+Before fusion can occur, data from disparate sensors must be perfectly aligned. The pipeline utilizes a central Area of Interest (AOI)—specifically Central Park, New York—as the anchor. All rasters are dynamically reprojected to a common Coordinate Reference System (CRS) and clipped to the exact bounding box of the vector geometry. 
 
-**Area of Interest:** Central Park, New York City  
-The AOI was selected because it is a compact urban environment with:
-- strong linear features,
-- mixed land cover,
-- clear spatial boundaries,
-- and useful structures for visual co-registration checks.
+### 2. The Brovey Transform (Image Fusion)
+To achieve the pan-sharpening, the pipeline employs the Brovey Transform (also known as Color Normalized Transform). This method normalizes the multispectral bands and multiplies them by the high-resolution panchromatic band to inject spatial detail. 
 
-## Data Sources
+The mathematical operation applied across the pixel arrays is:
+$Band_{sharp} = \frac{Band_{MS}}{R_{MS} + G_{MS} + B_{MS}} \times PAN$
 
-This project is designed to work with:
-- **Landsat 8** imagery,
-- **Sentinel-2** imagery.
+### 3. Edge-Based Quality Validation
+Visual inspection is subjective. To objectively measure the success of the spatial enhancement, the pipeline extracts the gradient edges (calculating changes in pixel intensity) from both the pan-sharpened output and the 10-meter Sentinel-2 reference. By computing the correlation coefficient between these two edge maps, we derive a quantitative metric of structural alignment and sharpness.
 
-The script assumes that the rasters have already been downloaded locally and are available in the expected folder structure.
+## The Script: Architecture and Dependencies
 
-## Workflow
+The core logic is contained within `Pan_sharpening.py`, designed as a sequential, vectorized workflow for efficient raster processing.
 
-The pipeline follows these steps:
+### Key Functional Blocks:
+* **Vectorized Data Loading:** Utilizes `rioxarray` for efficient, lazy-loading of `.TIF` and `.jp2` files, preserving crucial metadata (CRS, transforms).
+* **Automated Spatial Operations:** Employs `geopandas` and `shapely` to define the AOI bounding box, automatically handling reprojection between WGS84 and the local UTM zones of the satellite data.
+* **Matrix Operations:** Relies on `numpy` for high-performance tensor manipulations, specifically for calculating the Brovey transform arrays and avoiding division-by-zero errors via epsilon injection (`1e-6`).
+* **Percentile Normalization:** Includes a custom display stretching function that clips data to the 2nd and 98th percentiles, ensuring consistent and optimized visualization across differently calibrated sensors.
 
-1. Load Landsat 8 and Sentinel-2 raster data.
-2. Define or import the Central Park AOI.
-3. Reproject the AOI to match each raster CRS.
-4. Clip both images to the AOI.
-5. Match one raster to the other’s grid.
-6. Visualize both images side by side.
-7. Overlay the images for a quick alignment check.
-8. Estimate pixel shift using a correlation-based approach.
-9. Prepare the processed outputs for the next stage of the project.
+### Requirements
 
-## Project Structure
-
-```text
-project-name/
-├── data/
-│   ├── landsat/
-│   ├── sentinel/
-│   └── aoi/
-├── notebooks/
-├── scripts/
-├── outputs/
-│   ├── figures/
-│   └── processed/
-└── README.md
-```
-
-## Requirements
-
-This project uses Python geospatial libraries such as:
-- `rasterio`
-- `rioxarray`
-- `xarray`
-- `geopandas`
-- `numpy`
-- `matplotlib`
-
-You can install them with:
-
-```bash
-pip install rasterio rioxarray xarray geopandas numpy matplotlib
-```
+* `python >= 3.9`
+* `rioxarray`
+* `geopandas`
+* `shapely`
+* `numpy`
+* `matplotlib`
 
 ## How to Use
 
-1. Place your Landsat and Sentinel-2 files in the `data/` directory.
-2. Update the file paths in the processing script.
-3. Run the script to clip, align, and visualize the data.
-4. Review the output figures and pixel shift estimates.
-5. Use the processed rasters for further analysis or ML model development.
+**1. Environment Setup:**
+Clone the repository and install the necessary dependencies.
+```bash
+pip install -r requirements.txt
 
-## Results
+data/
+├── Landsat/
+│   ├── LC08_L1TP_..._B8.TIF (Pan)
+│   ├── LC08_L1TP_..._B2.TIF (Blue)
+│   └── ...
+└── sentinel/GRANULE/.../IMG_DATA/R10m/
+    ├── T18TWL_..._B02_10m.jp2 (Blue)
+    └── ...
 
-This project produces:
-- cropped AOI rasters,
-- alignment visualizations,
-- overlay comparisons,
-- pixel shift estimates,
-- and processed outputs ready for downstream work.
+## Results & Validation
 
-## Image Placeholders
+Upon execution, the pipeline produces both visual enhancements and quantitative validation metrics to verify the accuracy of the spatial fusion.
 
-Add your own figures here once you run the pipeline.
+### 1. Visual Comparison
+The script generates a side-by-side comparison (Figure 1) to visually inspect the resolution enhancement. 
 
-### AOI map
-<img width="1920" height="700" alt="Figure_1" src="https://github.com/user-attachments/assets/0954ae74-5862-445a-9184-8489e7b602b2" />
+* **Landsat MS (30 m):** The original multispectral imagery, stretched to the target grid, showing pixelation and lack of high-frequency detail.
+* **Pan-Sharpened Landsat (15 m):** The output of the Brovey Transform. This image demonstrates significantly clearer definitions of urban infrastructure, pathways, and water body boundaries within Central Park.
+* **Sentinel-2 Reference (10 m):** The baseline high-resolution imagery used for visual and algorithmic benchmarking.
 
+<img width="1920" height="700" alt="Figure_1" src="https://github.com/user-attachments/assets/d2c8a1ba-09f2-42b1-8317-c1293048f0b1" />
 
-### Landsat image
+### 2. Quantitative Edge Metrics
+Visual inspection can be subjective, so the pipeline includes an objective structural validation step (Figure 2). 
 
+By extracting the gradient edges (calculating changes in pixel intensity) from both the 15m Pan-Sharpened output and the 10m Sentinel-2 baseline, we can measure how well the structural integrity was maintained during fusion.
 
+* **Edge Correlation Coefficient:** The script logs a correlation metric to the console. A high correlation indicates that the Brovey transform successfully reconstructed the high-frequency spatial details (edges) present in the actual physical environment (as captured by Sentinel-2), mathematically validating the fusion technique.
 
-### Sentinel-2 image
-![Sentinel-2 image](images/sentinel-central-park.png)
-
-### Overlay comparison
-![Overlay comparison](images/overlay-comparison.png)
-
-### Co-registration check
-![Co-registration check](images/coregistration-check.png)
-
-## Example Output
-<img width="1200" height="500" alt="Figure_2" src="https://github.com/user-attachments/assets/de4548fe-a6d6-4895-b6a4-de2421d940a8" />
-
-
-A successful run should show:
-- clear cropping to the Central Park boundary,
-- visible but minimal spatial difference between the images,
-- strong overlap in major edges and structures,
-- and a small estimated pixel shift.
-
-## Next Steps
-
-Planned improvements for this project include:
-- proper reflectance scaling,
-- band-specific visualization,
-- automatic registration metrics,
-- fusion or pan-sharpening experiments,
-- and preparation of training data for deep learning models.
-
-## Notes
-
-This repository is being developed as part of a remote sensing and machine learning learning path. The first goal is to build a reliable preprocessing pipeline before moving to model training.
-
+<img width="1200" height="500" alt="Figure_2" src="https://github.com/user-attachments/assets/a23c29d2-04af-4068-b4bb-20f953055cb3" />
