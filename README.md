@@ -48,7 +48,7 @@ The core logic is contained within `Pan_sharpening.py`, designed as a sequential
 
 **1. Environment Setup:**
 Clone the repository and install the necessary dependencies.
-```bash
+
 pip install -r requirements.txt
 
 data/
