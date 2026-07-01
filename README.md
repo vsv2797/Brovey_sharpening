@@ -1,4 +1,4 @@
-## Spatial Resolution Enhancement of Multispectral Satellite Imagery via Pan-Sharpening
+## Spatial Resolution Enhancement of Multispectral Satellite Imagery via Brovey Transform based Sharpening technique.
 
 <img width="1920" height="700" alt="Figure_1" src="https://github.com/user-attachments/assets/d2c8a1ba-09f2-42b1-8317-c1293048f0b1" />
 
